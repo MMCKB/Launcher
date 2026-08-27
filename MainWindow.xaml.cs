@@ -475,11 +475,20 @@ public sealed partial class MainWindow : Window
     {
         try
         {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = application.LaunchPath,
-                UseShellExecute = true
-            });
+            var startInfo = application.UseAppsFolderActivation
+                ? new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"shell:AppsFolder\\{application.LaunchPath}",
+                    UseShellExecute = true
+                }
+                : new ProcessStartInfo
+                {
+                    FileName = application.LaunchPath,
+                    UseShellExecute = true
+                };
+
+            Process.Start(startInfo);
         }
         catch
         {

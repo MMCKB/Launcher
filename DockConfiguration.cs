@@ -13,6 +13,7 @@ public sealed class DockApplication
     public string Id { get; set; } = Guid.NewGuid().ToString("N");
     public string Name { get; set; } = "新应用";
     public string LaunchPath { get; set; } = string.Empty;
+    public bool UseAppsFolderActivation { get; set; }
     public bool IsCustom { get; set; }
 
     public string Initial => string.IsNullOrWhiteSpace(Name) ? "?" : Name[..1].ToUpperInvariant();
