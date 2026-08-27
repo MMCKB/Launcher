@@ -78,6 +78,7 @@ public sealed partial class MainWindow : Window
 
     // Context menu
     private MenuFlyout? _contextMenu;
+    private SettingsWindow? _settingsWindow;
 
     public MainWindow()
     {
@@ -173,7 +174,7 @@ public sealed partial class MainWindow : Window
             Text = "设置",
             Icon = new FontIcon { Glyph = "\uE713", FontSize = 16 }
         };
-        settingsItem.Click += (s, e) => { /* TODO: Open settings */ };
+        settingsItem.Click += (s, e) => OpenSettingsWindow();
 
         var refreshItem = new MenuFlyoutItem
         {
@@ -297,6 +298,17 @@ public sealed partial class MainWindow : Window
         {
             System.Diagnostics.Debug.WriteLine($"Menu show error: {ex}");
         }
+    }
+
+    private void OpenSettingsWindow()
+    {
+        if (_settingsWindow is null)
+        {
+            _settingsWindow = new SettingsWindow();
+            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+        }
+
+        _settingsWindow.Activate();
     }
 
     private void ReloadWallpaper()
