@@ -3,6 +3,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
@@ -333,7 +334,7 @@ public sealed partial class MainWindow : Window
 
     private void ApplyDockMaterial(string material)
     {
-        var brush = material switch
+        Brush brush = material switch
         {
             "柔雾云母" => new SolidColorBrush(Color.FromArgb(235, 39, 50, 73)),
             "深色玻璃" => new AcrylicBrush
