@@ -39,11 +39,24 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build
-      run: dotnet build -c ${{ github.event.inputs.configuration }} -f net10.0-windows10.0.19041.0 --no-restore
+    - name: Publish portable package
+      run: >
+        dotnet publish WinUI3Desktop.csproj
+        -c ${{ github.event.inputs.configuration }}
+        -f net10.0-windows10.0.19041.0
+        -r win-${{ github.event.inputs.platform }}
+        --self-contained false
+        --no-restore
+        -p:Platform=${{ github.event.inputs.platform }}
+        -o artifacts/Launcher-${{ github.event.inputs.configuration }}-${{ github.event.inputs.platform }}
 
-    - name: Upload artifacts
+    - name: List published files
+      shell: pwsh
+      run: Get-ChildItem -Path artifacts -Recurse | Select-Object FullName, Length
+
+    - name: Upload portable package
       uses: actions/upload-artifact@v4
       with:
         name: Launcher-${{ github.event.inputs.configuration }}-${{ github.event.inputs.platform }}
-        path: bin/${{ github.event.inputs.platform }}/${{ github.event.inputs.configuration }}/net10.0-windows10.0.19041.0/
+        path: artifacts/Launcher-${{ github.event.inputs.configuration }}-${{ github.event.inputs.platform }}/
+        if-no-files-found: error
