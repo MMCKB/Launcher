@@ -80,11 +80,7 @@
                         <TextBox x:Name="DrawerSearchBox"
                                  Grid.Column="1"
                                  PlaceholderText="搜索应用"
-                                 TextChanged="DrawerSearchBox_TextChanged">
-                            <TextBox.IconSource>
-                                <SymbolIconSource Symbol="Find" />
-                            </TextBox.IconSource>
-                        </TextBox>
+                                 TextChanged="DrawerSearchBox_TextChanged" />
                     </Grid>
 
                     <ScrollViewer Grid.Row="1"
@@ -132,11 +128,7 @@
                         <TextBox x:Name="DrawerSearchBoxBottom"
                                  Visibility="Collapsed"
                                  PlaceholderText="搜索应用"
-                                 TextChanged="DrawerSearchBox_TextChanged">
-                            <TextBox.IconSource>
-                                <SymbolIconSource Symbol="Find" />
-                            </TextBox.IconSource>
-                        </TextBox>
+                                 TextChanged="DrawerSearchBox_TextChanged" />
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
