@@ -58,7 +58,8 @@ public sealed partial class MainWindow : Window
     private const int DWMWA_CORNER_PREFERENCE = 33;
     private const int DWM_PREFER_ROUND_DWMWCP_ROUND = 2;
 
-    private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+    private static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
+    private const uint SWP_NOACTIVATE = 0x0010;
     private const uint SWP_SHOWWINDOW = 0x0040;
     private const uint SWP_FRAMECHANGED = 0x0020;
 
@@ -117,16 +118,18 @@ public sealed partial class MainWindow : Window
         // Move and resize to cover the entire screen
         appWindow.MoveAndResize(new Windows.Graphics.RectInt32(0, 0, screenWidth, screenHeight));
 
-        // Force window to exact screen size with no borders
-        SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, screenWidth, screenHeight, SWP_SHOWWINDOW | SWP_FRAMECHANGED);
+        // Keep the desktop-sized window below all normal application windows.
+        // SWP_NOACTIVATE prevents the background desktop from stealing foreground focus.
+        SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, screenWidth, screenHeight,
+            SWP_SHOWWINDOW | SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
-        // Configure the presenter to be borderless and always on top
+        // Configure the presenter as a borderless, non-topmost desktop surface.
         if (appWindow.Presenter is OverlappedPresenter presenter)
         {
             presenter.IsResizable = false;
             presenter.IsMaximizable = false;
             presenter.IsMinimizable = false;
-            presenter.IsAlwaysOnTop = true;
+            presenter.IsAlwaysOnTop = false;
             presenter.SetBorderAndTitleBar(false, false);
         }
 
