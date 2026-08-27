@@ -1,19 +1,28 @@
 name: Build
 
 on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      configuration:
+        description: 'Build configuration'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Debug
+          - Release
+      platform:
+        description: 'Target platform'
+        required: true
+        default: 'x64'
+        type: choice
+        options:
+          - x64
+          - x86
 
 jobs:
   build:
     runs-on: windows-latest
-    
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-        platform: [x64, x86]
 
     steps:
     - name: Checkout
@@ -31,10 +40,10 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build -c ${{ matrix.configuration }} -f net10.0-windows10.0.19041.0 --no-restore
+      run: dotnet build -c ${{ github.event.inputs.configuration }} -f net10.0-windows10.0.19041.0 --no-restore
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: Launcher-${{ matrix.configuration }}-${{ matrix.platform }}
-        path: bin/${{ matrix.platform }}/${{ matrix.configuration }}/net10.0-windows10.0.19041.0/
+        name: Launcher-${{ github.event.inputs.configuration }}-${{ github.event.inputs.platform }}
+        path: bin/${{ github.event.inputs.platform }}/${{ github.event.inputs.configuration }}/net10.0-windows10.0.19041.0/
