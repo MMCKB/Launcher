@@ -8,7 +8,6 @@ using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Microsoft.UI.Xaml.Shapes;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -251,7 +250,7 @@ public sealed partial class MainWindow : Window
             }
         };
         root.Children.Add(tile);
-        root.Children.Add(new Ellipse
+        root.Children.Add(new Microsoft.UI.Xaml.Shapes.Ellipse
         {
             Width = 5,
             Height = 5,
