@@ -7,7 +7,185 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <Grid x:Name="RootGrid" 
-          Background="Transparent">
+
+    <Grid x:Name="RootGrid" Background="Transparent" PointerPressed="RootGrid_PointerPressed">
+        <Grid.Resources>
+            <AcrylicBrush x:Key="DefaultGaussianBrush"
+                          TintColor="#FF17233A"
+                          TintOpacity="0.70"
+                          FallbackColor="#E817233A" />
+            <SolidColorBrush x:Key="DockStrokeBrush" Color="#58FFFFFF" />
+            <SolidColorBrush x:Key="DockIconForeground" Color="#FFF7F9FF" />
+
+            <Style x:Key="DockButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="62" />
+                <Setter Property="Height" Value="70" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="14" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+
+            <Style x:Key="DrawerAppButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="92" />
+                <Setter Property="Height" Value="100" />
+                <Setter Property="Padding" Value="4" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="12" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style>
+        </Grid.Resources>
+
+        <Image x:Name="WallpaperImage"
+               Stretch="UniformToFill"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch" />
+
+        <Grid x:Name="DrawerHost"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Margin="0,0,0,104"
+              Visibility="Collapsed">
+            <Border x:Name="DrawerSurface"
+                    Width="650"
+                    MaxHeight="560"
+                    Padding="20"
+                    Background="{StaticResource DefaultGaussianBrush}"
+                    BorderBrush="{StaticResource DockStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="24">
+                <Grid RowSpacing="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" ColumnSpacing="14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="270" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="应用抽屉" FontSize="22" FontWeight="SemiBold" />
+                            <TextBlock Text="仅搜索本机应用" FontSize="13"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <TextBox x:Name="DrawerSearchBox"
+                                 Grid.Column="1"
+                                 PlaceholderText="搜索应用"
+                                 TextChanged="DrawerSearchBox_TextChanged">
+                            <TextBox.IconSource>
+                                <SymbolIconSource Symbol="Find" />
+                            </TextBox.IconSource>
+                        </TextBox>
+                    </Grid>
+
+                    <ScrollViewer Grid.Row="1"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsRepeater x:Name="DrawerRepeater">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout x:Name="DrawerGridLayout"
+                                                   MinItemWidth="92"
+                                                   MinItemHeight="100"
+                                                   MinColumnSpacing="10"
+                                                   MinRowSpacing="10" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="local:DockApplication">
+                                    <Button Tag="{Binding}"
+                                            Style="{StaticResource DrawerAppButtonStyle}"
+                                            Click="DrawerApplication_Click"
+                                            RightTapped="DrawerApplication_RightTapped"
+                                            DragStarting="DrawerApplication_DragStarting"
+                                            CanDrag="True">
+                                        <StackPanel HorizontalAlignment="Center" Spacing="7">
+                                            <Border Width="48" Height="48" CornerRadius="14" Background="#FF4B75DB">
+                                                <TextBlock Text="{Binding Initial}"
+                                                           FontSize="20"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Text="{Binding Name}"
+                                                       MaxWidth="82"
+                                                       FontSize="12"
+                                                       TextAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       TextWrapping="NoWrap" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </ScrollViewer>
+
+                    <StackPanel Grid.Row="2" Spacing="10">
+                        <TextBox x:Name="DrawerSearchBoxBottom"
+                                 Visibility="Collapsed"
+                                 PlaceholderText="搜索应用"
+                                 TextChanged="DrawerSearchBox_TextChanged">
+                            <TextBox.IconSource>
+                                <SymbolIconSource Symbol="Find" />
+                            </TextBox.IconSource>
+                        </TextBox>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button Content="‹" Click="PreviousDrawerPage_Click" />
+                            <TextBlock x:Name="DrawerPageText"
+                                       Grid.Column="1"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <Button Grid.Column="2" Content="›" Click="NextDrawerPage_Click" />
+                        </Grid>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid x:Name="DockHost"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Margin="0,0,0,28">
+            <Border x:Name="DockSurface"
+                    Padding="10,8"
+                    Background="{StaticResource DefaultGaussianBrush}"
+                    BorderBrush="{StaticResource DockStrokeBrush}"
+                    BorderThickness="1"
+                    CornerRadius="26">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <StackPanel x:Name="DockAppsPanel"
+                                Orientation="Horizontal"
+                                AllowDrop="True"
+                                DragOver="DockAppsPanel_DragOver"
+                                Drop="DockAppsPanel_Drop" />
+                    <Border Width="1" Height="42" Margin="6,0" VerticalAlignment="Center" Background="#38FFFFFF" />
+                    <Button x:Name="OpenDrawerButton"
+                            Style="{StaticResource DockButtonStyle}"
+                            Click="OpenDrawerButton_Click"
+                            ToolTipService.ToolTip="打开应用抽屉">
+                        <Grid Width="52" Height="60">
+                            <Border Width="48" Height="48" CornerRadius="14" Background="#FF2D5EB7">
+                                <FontIcon Glyph="&#xE700;" FontSize="23" Foreground="{StaticResource DockIconForeground}" />
+                            </Border>
+                            <Ellipse Width="5" Height="5" Fill="#FF9CC2FF" VerticalAlignment="Bottom" />
+                        </Grid>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
