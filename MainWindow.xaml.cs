@@ -338,7 +338,6 @@ public sealed partial class MainWindow : Window
             "柔雾云母" => new SolidColorBrush(Color.FromArgb(235, 39, 50, 73)),
             "深色玻璃" => new AcrylicBrush
             {
-                BackgroundSource = AcrylicBackgroundSource.Backdrop,
                 TintColor = Color.FromArgb(255, 8, 14, 28),
                 TintOpacity = 0.88,
                 FallbackColor = Color.FromArgb(238, 8, 14, 28)
@@ -346,7 +345,6 @@ public sealed partial class MainWindow : Window
             "纯净模式" => new SolidColorBrush(Color.FromArgb(245, 27, 39, 62)),
             _ => new AcrylicBrush
             {
-                BackgroundSource = AcrylicBackgroundSource.Backdrop,
                 TintColor = Color.FromArgb(255, 23, 36, 60),
                 TintOpacity = 0.76,
                 FallbackColor = Color.FromArgb(232, 23, 36, 60)

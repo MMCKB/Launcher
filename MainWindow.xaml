@@ -8,9 +8,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Window.Resources>
+    <Grid x:Name="RootGrid" Background="Transparent">
+        <Grid.Resources>
         <AcrylicBrush x:Key="DockGlassBrush"
-                      BackgroundSource="Backdrop"
                       TintColor="#FF17243C"
                       TintOpacity="0.76"
                       FallbackColor="#E817243C" />
@@ -30,9 +30,8 @@
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
-    </Window.Resources>
+        </Grid.Resources>
 
-    <Grid x:Name="RootGrid" Background="Transparent">
         <Image x:Name="WallpaperImage"
                Stretch="UniformToFill"
                HorizontalAlignment="Stretch"
