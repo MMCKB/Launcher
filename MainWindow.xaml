@@ -95,7 +95,7 @@
                                                    MinRowSpacing="10" />
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="local:DockApplication">
+                                <DataTemplate>
                                     <Button Tag="{Binding}"
                                             Style="{StaticResource DrawerAppButtonStyle}"
                                             Click="DrawerApplication_Click"
