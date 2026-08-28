@@ -1,6 +1,6 @@
 # Launcher
 
-一个使用 C#、.NET 10、WinUI 3 和 Windows App SDK 开发的第三方 Windows 桌面应用。
+一个使用 C#、.NET 10、WinUI 3 和 Windows App SDK 开发的第三方 Windows 桌面应用。（Vibe Coding）
 
 ## 功能特性
 
