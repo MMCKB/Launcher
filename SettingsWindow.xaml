@@ -8,7 +8,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid x:Name="SettingsRoot">
+    <Grid x:Name="SettingsRoot" Background="Transparent">
+        <!-- WinUI3 Custom Title Bar -->
+        <Grid x:Name="AppTitleBar"
+              Height="48"
+              VerticalAlignment="Top"
+              Background="Transparent">
+        </Grid>
+
         <NavigationView x:Name="SettingsNavigation"
                         PaneDisplayMode="Left"
                         IsBackButtonVisible="Collapsed"
@@ -17,7 +24,7 @@
                         IsPaneOpen="True"
                         OpenPaneLength="240"
                         CompactPaneLength="64"
-                        PaneTitle="MyDock"
+                        PaneTitle=""
                         SelectionChanged="SettingsNavigation_SelectionChanged">
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="外观" Tag="Appearance">
@@ -39,13 +46,6 @@
                     <NavigationViewItem.Icon><FontIcon Glyph="&#xE770;" /></NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.MenuItems>
-
-            <NavigationView.PaneFooter>
-                <StackPanel Margin="12,8,12,16" Spacing="2">
-                    <TextBlock Text="MyDock" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <TextBlock Text="设置中心" FontSize="12" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                </StackPanel>
-            </NavigationView.PaneFooter>
 
             <Border Padding="48,36,56,48">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">

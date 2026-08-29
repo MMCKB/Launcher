@@ -16,6 +16,10 @@
                           FallbackColor="#E817233A" />
             <SolidColorBrush x:Key="DockStrokeBrush" Color="#58FFFFFF" />
             <SolidColorBrush x:Key="DockIconForeground" Color="#FFF7F9FF" />
+            <SolidColorBrush x:Key="DockSurfaceBrush" Color="#E61B2D50" />
+
+            <!-- WinUI3 风格阴影 -->
+            <ThemeShadow x:Name="DockShadow" />
 
             <Style x:Key="DockButtonStyle" TargetType="Button">
                 <Setter Property="Width" Value="62" />
@@ -59,7 +63,9 @@
                     Background="{StaticResource DefaultGaussianBrush}"
                     BorderBrush="{StaticResource DockStrokeBrush}"
                     BorderThickness="1"
-                    CornerRadius="24">
+                    CornerRadius="24"
+                    Shadow="{StaticResource DockShadow}"
+                    Translation="0,0,32">
                 <Grid RowSpacing="16">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -157,7 +163,9 @@
                     Background="{StaticResource DefaultGaussianBrush}"
                     BorderBrush="{StaticResource DockStrokeBrush}"
                     BorderThickness="1"
-                    CornerRadius="26">
+                    CornerRadius="26"
+                    Shadow="{StaticResource DockShadow}"
+                    Translation="0,0,32">
                 <StackPanel Orientation="Horizontal" Spacing="4">
                     <StackPanel x:Name="DockAppsPanel"
                                 Orientation="Horizontal"

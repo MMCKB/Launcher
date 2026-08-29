@@ -1,6 +1,8 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using System.Runtime.InteropServices;
 using WinRT.Interop;
 using Windows.Storage.Pickers;
 
@@ -24,6 +26,10 @@ public sealed partial class SettingsWindow : Window
         var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
         var appWindow = AppWindow.GetFromWindowId(windowId);
 
+        // Hide system title bar and use WinUI3 custom title bar
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(AppTitleBar);
+
         appWindow.Title = "MyDock 设置";
         appWindow.Resize(new Windows.Graphics.SizeInt32(1080, 760));
 
@@ -33,6 +39,45 @@ public sealed partial class SettingsWindow : Window
             presenter.IsMaximizable = true;
             presenter.IsMinimizable = true;
             presenter.IsAlwaysOnTop = false;
+        }
+
+        // Remove white borders by extending frame
+        RemoveWhiteBorders(hWnd);
+
+        // Handle title bar drag
+        AppTitleBar.PointerPressed += AppTitleBar_PointerPressed;
+    }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS pMarInset);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MARGINS
+    {
+        public int leftWidth;
+        public int rightWidth;
+        public int topHeight;
+        public int bottomHeight;
+    }
+
+    private void RemoveWhiteBorders(IntPtr hWnd)
+    {
+        try
+        {
+            var margins = new MARGINS { leftWidth = -1, rightWidth = -1, topHeight = -1, bottomHeight = -1 };
+            DwmExtendFrameIntoClientArea(hWnd, ref margins);
+        }
+        catch
+        {
+            // Ignore if not supported
+        }
+    }
+
+    private void AppTitleBar_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (e.GetCurrentPoint(AppTitleBar).Properties.IsLeftButtonPressed)
+        {
+            AppWindow.MoveAndResize(new Windows.Graphics.RectInt32());
         }
     }
 

@@ -58,8 +58,11 @@ public sealed partial class MainWindow : Window
     private const int WsExClientEdge = 0x00000200;
     private const int WsExWindowEdge = 0x00000100;
     private const int WsExStaticEdge = 0x00020000;
+    private const int WsExLayered = 0x00080000;
     private const int DwmwaCornerPreference = 33;
     private const int DwmPreferRound = 2;
+    private const int DwmwaNcRenderingPolicy = 2;
+    private const int DwmNcrpDisabled = 1;
     private const int SmCxScreen = 0;
     private const int SmCyScreen = 1;
     private const uint SpiGetDeskWallpaper = 0x0073;
@@ -100,6 +103,10 @@ public sealed partial class MainWindow : Window
         exStyle &= ~WsExWindowEdge;
         exStyle &= ~WsExStaticEdge;
         SetWindowLong(hWnd, GwlExStyle, exStyle);
+
+        // Disable DWM non-client rendering to remove white borders
+        int ncRenderingPolicy = DwmNcrpDisabled;
+        DwmSetWindowAttribute(hWnd, DwmwaNcRenderingPolicy, ref ncRenderingPolicy, sizeof(int));
 
         var margins = new Margins { LeftWidth = -1, RightWidth = -1, TopHeight = -1, BottomHeight = -1 };
         DwmExtendFrameIntoClientArea(hWnd, ref margins);
