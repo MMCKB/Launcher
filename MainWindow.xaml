@@ -167,12 +167,25 @@
                     Shadow="{StaticResource DockShadow}"
                     Translation="0,0,32">
                 <StackPanel Orientation="Horizontal" Spacing="4">
+                    <!-- 固定应用区域 -->
                     <StackPanel x:Name="DockAppsPanel"
                                 Orientation="Horizontal"
                                 AllowDrop="True"
                                 DragOver="DockAppsPanel_DragOver"
                                 Drop="DockAppsPanel_Drop" />
+
+                    <!-- 分隔符 -->
                     <Border Width="1" Height="42" Margin="6,0" VerticalAlignment="Center" Background="#38FFFFFF" />
+
+                    <!-- 正在运行的应用区域 -->
+                    <StackPanel x:Name="RunningAppsPanel"
+                                Orientation="Horizontal"
+                                Spacing="4" />
+
+                    <!-- 分隔符 -->
+                    <Border Width="1" Height="42" Margin="6,0" VerticalAlignment="Center" Background="#38FFFFFF" />
+
+                    <!-- 打开抽屉按钮 -->
                     <Button x:Name="OpenDrawerButton"
                             Style="{StaticResource DockButtonStyle}"
                             Click="OpenDrawerButton_Click"

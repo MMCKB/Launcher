@@ -76,6 +76,7 @@ public sealed partial class MainWindow : Window
     private DockApplication? _draggedApplication;
     private SettingsWindow? _settingsWindow;
     private int _drawerPage;
+    private readonly DispatcherTimer _runningAppsTimer;
 
     public MainWindow()
     {
@@ -83,9 +84,57 @@ public sealed partial class MainWindow : Window
         ConfigureDesktopWindow();
         ReloadWallpaper();
 
+        // 定时刷新正在运行的应用（每2秒）
+        _runningAppsTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+        _runningAppsTimer.Tick += (sender, e) => RefreshRunningApplications();
+        _runningAppsTimer.Start();
+
         LauncherSettings.Changed += OnSettingsChanged;
         RefreshApplications();
         ApplyDockConfiguration();
+        RefreshRunningApplications();
+    }
+
+    private void RefreshRunningApplications()
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            var runningApps = ApplicationCatalog.GetRunningApplications(_allApplications);
+            RenderRunningApplications(runningApps);
+        });
+    }
+
+    private void RenderRunningApplications(List<DockApplication> runningApps)
+    {
+        RunningAppsPanel.Children.Clear();
+
+        foreach (var application in runningApps)
+        {
+            var button = new Button
+            {
+                Tag = application,
+                Style = (Style)RootGrid.Resources["DockButtonStyle"]
+            };
+            ToolTipService.SetToolTip(button, application.Name + " (正在运行)");
+
+            button.Click += DockApplication_Click;
+            button.RightTapped += RunningApplication_RightTapped;
+            button.Content = CreateDockTile(application, true);
+            RunningAppsPanel.Children.Add(button);
+        }
+    }
+
+    private void RunningApplication_RightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: DockApplication application })
+            return;
+
+        e.Handled = true;
+        var menu = new MenuFlyout();
+        var open = new MenuFlyoutItem { Text = "切换到此应用", Icon = new FontIcon { Glyph = "\uE8A7" } };
+        open.Click += (_, _) => LaunchApplication(application);
+        menu.Items.Add(open);
+        menu.ShowAt((FrameworkElement)sender, new FlyoutShowOptions { Position = e.GetPosition((UIElement)sender) });
     }
 
     private void ConfigureDesktopWindow()
@@ -237,7 +286,7 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private static UIElement CreateDockTile(DockApplication application)
+    private static UIElement CreateDockTile(DockApplication application, bool isRunning = false)
     {
         var root = new Grid { Width = 52, Height = 60 };
         var tile = new Border
@@ -245,8 +294,19 @@ public sealed partial class MainWindow : Window
             Width = 48,
             Height = 48,
             CornerRadius = new CornerRadius(14),
-            Background = new SolidColorBrush(GetApplicationColor(application.Name)),
-            Child = new TextBlock
+            Background = new SolidColorBrush(GetApplicationColor(application.Name))
+        };
+
+        // 尝试加载实际图标
+        var iconImage = TryLoadApplicationIcon(application);
+        if (iconImage != null)
+        {
+            tile.Background = null;
+            tile.Child = iconImage;
+        }
+        else
+        {
+            tile.Child = new TextBlock
             {
                 Text = application.Initial,
                 FontSize = 20,
@@ -254,28 +314,81 @@ public sealed partial class MainWindow : Window
                 Foreground = new SolidColorBrush(Colors.White),
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
-            }
-        };
+            };
+        }
+
         root.Children.Add(tile);
-        root.Children.Add(new Microsoft.UI.Xaml.Shapes.Ellipse
+
+        // 运行指示器（小圆点）
+        if (isRunning)
         {
-            Width = 5,
-            Height = 5,
-            Fill = new SolidColorBrush(Color.FromArgb(255, 158, 199, 255)),
-            VerticalAlignment = VerticalAlignment.Bottom
-        });
+            root.Children.Add(new Microsoft.UI.Xaml.Shapes.Ellipse
+            {
+                Width = 6,
+                Height = 6,
+                Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(255, 100, 220, 100)),
+                VerticalAlignment = VerticalAlignment.Bottom,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 4)
+            });
+        }
+
         return root;
     }
 
-    private static Color GetApplicationColor(string name)
+    private static Image? TryLoadApplicationIcon(DockApplication application)
+    {
+        try
+        {
+            var path = application.IconPath;
+            if (string.IsNullOrEmpty(path))
+                return null;
+
+            // 如果是 URL 或 ms-settings: 等 URI，跳过
+            if (path.Contains(':') && !System.IO.Path.IsPathRooted(path))
+                return null;
+
+            if (!System.IO.File.Exists(path))
+                return null;
+
+            // 检查是否是 .ico 文件
+            var extension = System.IO.Path.GetExtension(path).ToLowerInvariant();
+            if (extension != ".ico" && extension != ".exe" && extension != ".dll")
+                return null;
+
+            // 对于 .ico 文件，直接用 BitmapImage 加载
+            if (extension == ".ico")
+            {
+                var bitmap = new BitmapImage(new Uri(path));
+                return new Image
+                {
+                    Source = bitmap,
+                    Width = 36,
+                    Height = 36,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform
+                };
+            }
+
+            // 对于 .exe/.dll，我们无法直接提取图标，使用首字母
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static Windows.UI.Color GetApplicationColor(string name)
     {
         var palette = new[]
         {
-            Color.FromArgb(255, 54, 111, 221),
-            Color.FromArgb(255, 118, 78, 207),
-            Color.FromArgb(255, 38, 151, 118),
-            Color.FromArgb(255, 223, 119, 45),
-            Color.FromArgb(255, 207, 71, 102)
+            Windows.UI.Color.FromArgb(255, 54, 111, 221),
+            Windows.UI.Color.FromArgb(255, 118, 78, 207),
+            Windows.UI.Color.FromArgb(255, 38, 151, 118),
+            Windows.UI.Color.FromArgb(255, 223, 119, 45),
+            Windows.UI.Color.FromArgb(255, 207, 71, 102)
         };
         return palette[(int)((uint)name.GetHashCode() % palette.Length)];
     }
@@ -579,36 +692,36 @@ public sealed partial class MainWindow : Window
         {
             DockMaterialKind.Mica => new LinearGradientBrush
             {
-                StartPoint = new Point(0, 0),
-                EndPoint = new Point(1, 1),
+                StartPoint = new Windows.Foundation.Point(0, 0),
+                EndPoint = new Windows.Foundation.Point(1, 1),
                 GradientStops = new GradientStopCollection
                 {
-                    new GradientStop { Color = Color.FromArgb(opacity, 43, 57, 88), Offset = 0 },
-                    new GradientStop { Color = Color.FromArgb(opacity, 24, 34, 57), Offset = 1 }
+                    new GradientStop { Color = Windows.UI.Color.FromArgb(opacity, 43, 57, 88), Offset = 0 },
+                    new GradientStop { Color = Windows.UI.Color.FromArgb(opacity, 24, 34, 57), Offset = 1 }
                 }
             },
             DockMaterialKind.LiquidGlass => new LinearGradientBrush
             {
-                StartPoint = new Point(0, 0),
-                EndPoint = new Point(1, 1),
+                StartPoint = new Windows.Foundation.Point(0, 0),
+                EndPoint = new Windows.Foundation.Point(1, 1),
                 GradientStops = new GradientStopCollection
                 {
-                    new GradientStop { Color = Color.FromArgb((byte)Math.Min(250, opacity + 20), 196, 219, 255), Offset = 0 },
-                    new GradientStop { Color = Color.FromArgb(opacity, 62, 91, 160), Offset = 0.42 },
-                    new GradientStop { Color = Color.FromArgb(opacity, 30, 40, 75), Offset = 1 }
+                    new GradientStop { Color = Windows.UI.Color.FromArgb((byte)Math.Min(250, opacity + 20), 196, 219, 255), Offset = 0 },
+                    new GradientStop { Color = Windows.UI.Color.FromArgb(opacity, 62, 91, 160), Offset = 0.42 },
+                    new GradientStop { Color = Windows.UI.Color.FromArgb(opacity, 30, 40, 75), Offset = 1 }
                 }
             },
             DockMaterialKind.Acrylic => new AcrylicBrush
             {
-                TintColor = Color.FromArgb(255, 34, 52, 90),
+                TintColor = Windows.UI.Color.FromArgb(255, 34, 52, 90),
                 TintOpacity = mixedTint,
-                FallbackColor = Color.FromArgb(opacity, 34, 52, 90)
+                FallbackColor = Windows.UI.Color.FromArgb(opacity, 34, 52, 90)
             },
             _ => new AcrylicBrush
             {
-                TintColor = Color.FromArgb(255, 23, 35, 60),
+                TintColor = Windows.UI.Color.FromArgb(255, 23, 35, 60),
                 TintOpacity = Math.Clamp(mixedTint * 0.78, 0.1, 0.92),
-                FallbackColor = Color.FromArgb(opacity, 23, 35, 60)
+                FallbackColor = Windows.UI.Color.FromArgb(opacity, 23, 35, 60)
             }
         };
     }
