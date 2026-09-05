@@ -26,3 +26,6 @@ Desktop.ini
 appsettings.json
 *.secrets.json
 .env
+
+# Documentation
+PROJECT_HANDOVER.md
