@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       configuration:
-        description: 'Build configuration'
+        description: '编译配置'
         required: true
         default: 'Release'
         type: choice
@@ -12,17 +12,24 @@ on:
           - Debug
           - Release
       platform:
-        description: 'Target platform'
+        description: '目标平台'
         required: true
         default: 'x64'
         type: choice
         options:
           - x64
           - x86
+  push:
+    branches: [ Next ]
+  pull_request:
+    branches: [ Next ]
 
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        platform: [x64, x86]
 
     steps:
     - name: Checkout
@@ -33,30 +40,33 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
+    - name: Restore
+      run: dotnet restore WinUI3Desktop.csproj
 
-    - name: Restore dependencies
-      run: dotnet restore
+    - name: Build
+      run: >
+        dotnet build WinUI3Desktop.csproj
+        -c ${{ github.event_name == 'push' && 'Release' || github.event.inputs.configuration }}
+        -f net10.0-windows10.0.19041.0
+        -p:Platform=${{ matrix.platform }}
+        --no-restore
 
-    - name: Publish portable package
+    - name: Publish
+      if: github.event_name != 'pull_request'
       run: >
         dotnet publish WinUI3Desktop.csproj
-        -c ${{ github.event.inputs.configuration }}
+        -c ${{ github.event_name == 'push' && 'Release' || github.event.inputs.configuration }}
         -f net10.0-windows10.0.19041.0
-        -r win-${{ github.event.inputs.platform }}
+        -r win-${{ matrix.platform }}
         --self-contained false
-        --no-restore
-        -p:Platform=${{ github.event.inputs.platform }}
-        -o artifacts/Launcher-${{ github.event.inputs.configuration }}-${{ github.event.inputs.platform }}
+        --no-build
+        -p:Platform=${{ matrix.platform }}
+        -o artifacts/Launcher-${{ matrix.platform }}
 
-    - name: List published files
-      shell: pwsh
-      run: Get-ChildItem -Path artifacts -Recurse | Select-Object FullName, Length
-
-    - name: Upload portable package
+    - name: Upload artifact
+      if: github.event_name != 'pull_request'
       uses: actions/upload-artifact@v4
       with:
-        name: Launcher-${{ github.event.inputs.configuration }}-${{ github.event.inputs.platform }}
-        path: artifacts/Launcher-${{ github.event.inputs.configuration }}-${{ github.event.inputs.platform }}/
+        name: Launcher-${{ matrix.platform }}
+        path: artifacts/
         if-no-files-found: error
