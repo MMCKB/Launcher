@@ -2,23 +2,6 @@ name: Build
 
 on:
   workflow_dispatch:
-    inputs:
-      configuration:
-        description: '编译配置'
-        required: true
-        default: 'Release'
-        type: choice
-        options:
-          - Debug
-          - Release
-      platform:
-        description: '目标平台'
-        required: true
-        default: 'x64'
-        type: choice
-        options:
-          - x64
-          - x86
   push:
     branches: [ Next ]
   pull_request:
@@ -29,6 +12,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
+        configuration: [Debug, Release]
         platform: [x64, x86]
 
     steps:
@@ -40,13 +24,13 @@ jobs:
       with:
         dotnet-version: '10.0.x'
 
-    - name: Restore
+    - name: Restore dependencies
       run: dotnet restore WinUI3Desktop.csproj
 
     - name: Build
       run: >
         dotnet build WinUI3Desktop.csproj
-        -c ${{ github.event_name == 'push' && 'Release' || github.event.inputs.configuration }}
+        -c ${{ matrix.configuration }}
         -f net10.0-windows10.0.19041.0
         -p:Platform=${{ matrix.platform }}
         --no-restore
@@ -55,18 +39,17 @@ jobs:
       if: github.event_name != 'pull_request'
       run: >
         dotnet publish WinUI3Desktop.csproj
-        -c ${{ github.event_name == 'push' && 'Release' || github.event.inputs.configuration }}
+        -c ${{ matrix.configuration }}
         -f net10.0-windows10.0.19041.0
         -r win-${{ matrix.platform }}
         --self-contained false
-        --no-build
         -p:Platform=${{ matrix.platform }}
-        -o artifacts/Launcher-${{ matrix.platform }}
+        -o artifacts/Launcher-${{ matrix.configuration }}-${{ matrix.platform }}
 
-    - name: Upload artifact
+    - name: Upload artifacts
       if: github.event_name != 'pull_request'
       uses: actions/upload-artifact@v4
       with:
-        name: Launcher-${{ matrix.platform }}
+        name: Launcher-${{ matrix.configuration }}-${{ matrix.platform }}
         path: artifacts/
-        if-no-files-found: error
+        if-no-files-found: warn
